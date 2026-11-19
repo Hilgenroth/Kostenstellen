@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kostenstellen · Rudolf Hilgenroth</title>
+<style>
+:root{
+  --red:#c8102e; --red-l:#fee2e2; --ink:#1a1d21; --muted:#6b7280; --slate:#4b5563;
+  --line:#e3e5e9; --bg:#f4f5f7; --white:#fff;
+  --bau:#1d4ed8;   --bau-l:#dbeafe;
+  --kunde:#15803d; --kunde-l:#dcfce7;
+  --depo:#b45309;  --depo-l:#fef3c7;
+  --betrieb:#6b7280; --betrieb-l:#f1f3f5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;
+     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+     -webkit-text-size-adjust:100%}
+
+/* ── Suchkopf, bleibt oben stehen ── */
+.top{background:var(--white);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;
+     padding:12px 14px 10px}
+.topin{max-width:1200px;margin:0 auto}
+.tr1{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.tt{font-size:17px;font-weight:700;margin:0;flex:1;white-space:nowrap}
+.sync{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);white-space:nowrap}
+.sdot{width:7px;height:7px;border-radius:50%;background:#d1d5db}
+.sdot.on{background:var(--kunde)}
+.sfeld{position:relative}
+.sfeld svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+           width:19px;height:19px;stroke:var(--muted);fill:none;stroke-width:2;pointer-events:none}
+#q{width:100%;padding:14px 44px 14px 42px;border:2px solid var(--line);border-radius:11px;
+   font-size:17px;font-family:inherit;background:var(--white);color:var(--ink);min-height:52px}
+#q:focus{outline:none;border-color:var(--red)}
+.sx{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:36px;height:36px;
+    border:0;background:none;color:var(--muted);font-size:24px;cursor:pointer;border-radius:8px;
+    line-height:1;padding:0;display:none}
+.sx.on{display:block}
+.pills{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.pill{border:1px solid var(--line);background:var(--white);border-radius:20px;padding:6px 13px;
+      font-size:13px;font-weight:600;cursor:pointer;color:var(--slate);font-family:inherit;min-height:34px;
+      display:inline-flex;align-items:center;gap:6px}
+.pill span{font-size:10.5px;font-weight:700;background:#f1f3f5;color:var(--muted);
+           border-radius:20px;padding:1px 6px}
+.pill.on{background:var(--red);border-color:var(--red);color:#fff}
+.pill.on span{background:rgba(255,255,255,.22);color:#fff}
+
+.wrap{max-width:1200px;margin:0 auto;padding:14px}
+.sec{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
+     margin:4px 0 9px;display:flex;align-items:center;gap:8px}
+.sec b{font-weight:700;color:var(--red)}
+
+/* ── Kostenstellen-Karten ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:10px}
+.kk{background:var(--white);border:1px solid var(--line);border-radius:11px;padding:12px 14px;
+    cursor:pointer;position:relative;display:flex;gap:12px;align-items:flex-start}
+.kk:hover{border-color:var(--red)}
+.kk-n{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:21px;font-weight:700;
+      letter-spacing:-.5px;line-height:1.15;white-space:nowrap}
+.kk-b{flex:1;min-width:0}
+.kk-t{font-weight:700;font-size:14.5px;line-height:1.3;margin-bottom:2px;
+      overflow-wrap:anywhere}
+.kk-s{font-size:12.5px;color:var(--muted);line-height:1.4;overflow-wrap:anywhere}
+.kk-tag{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+        padding:2px 7px;border-radius:4px;margin-top:6px}
+.kk-fav{position:absolute;top:9px;right:9px;width:34px;height:34px;border:0;background:none;
+        cursor:pointer;padding:0;color:#d1d5db;display:flex;align-items:center;justify-content:center}
+.kk-fav svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2}
+.kk-fav.on{color:#f59e0b}
+.kk-fav.on svg{fill:currentColor}
+
+.leer{text-align:center;padding:46px 18px;color:var(--muted)}
+.leer b{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}
+
+.btn{border:1px solid var(--line);background:var(--white);border-radius:9px;padding:10px 15px;
+     font-size:14px;font-weight:600;cursor:pointer;color:var(--ink);font-family:inherit;min-height:44px}
+.btn:hover{background:#f8f9fb}
+.btn.p{background:var(--red);border-color:var(--red);color:#fff}
+.btn.g{color:var(--slate)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+
+/* ── Dialoge ── */
+.bd{display:none;position:fixed;inset:0;background:rgba(17,20,24,.45);z-index:90;
+    align-items:flex-start;justify-content:center;padding:26px 14px;overflow-y:auto}
+.bd.on{display:flex}
+.md{background:var(--white);border-radius:13px;padding:20px;width:540px;max-width:100%;
+    box-shadow:0 12px 40px rgba(0,0,0,.18)}
+.mdt{font-size:17px;font-weight:700;margin-bottom:14px}
+.fr{margin-bottom:12px}
+.fr label{display:block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+          color:var(--muted);margin-bottom:5px}
+.fi{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;font-size:15px;
+    font-family:inherit;background:var(--white);color:var(--ink);min-height:46px}
+.fi:focus{outline:none;border-color:var(--red)}
+.ma{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.ma .links{margin-right:auto}
+
+/* ── Detailansicht ── */
+.dt-n{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:38px;font-weight:700;
+      letter-spacing:-1px;line-height:1;color:var(--red)}
+.dt-t{font-size:18px;font-weight:700;margin:8px 0 2px;overflow-wrap:anywhere}
+.dt-z{display:flex;justify-content:space-between;gap:12px;padding:10px 0;
+      border-bottom:1px solid var(--line);font-size:14px;flex-wrap:wrap}
+.dt-z:last-of-type{border-bottom:0}
+.dt-l{color:var(--muted);white-space:nowrap}
+.dt-w{font-weight:600;text-align:right;overflow-wrap:anywhere}
+.kopiert{font-size:12.5px;color:var(--kunde);font-weight:600;margin-top:8px;display:none}
+.kopiert.on{display:block}
+
+.menub{display:none;border:1px solid var(--line);background:var(--white);border-radius:9px;
+       width:40px;height:40px;font-size:21px;line-height:1;color:var(--slate);cursor:pointer;
+       padding:0;flex:none}
+body.admin-offen .menub{background:var(--red);border-color:var(--red);color:#fff}
+
+@media (max-width:760px){
+  .wrap{padding:10px 12px 24px}
+  .grid{grid-template-columns:1fr;gap:8px}
+  .bd{padding:0;align-items:stretch}
+  .md{border-radius:0;min-height:100%;padding:16px}
+  .tt{font-size:16px}
+  .menub{display:block}
+
+  /* Verwaltung steckt hinter dem Menüknopf - auf der Baustelle braucht
+     die niemand, die Treffer sollen sofort sichtbar sein. */
+  .bar{display:none}
+  body.admin-offen .bar{display:flex}
+  body.admin-offen .bar .btn{flex:1 1 100%}
+
+  /* Filter in einer Zeile zum Wischen statt in zwei Reihen */
+  .pills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+         margin:10px -14px 0;padding:0 14px 2px}
+  .pills::-webkit-scrollbar{display:none}
+  .pill{flex:none}
+
+  /* Beim Scrollen verschwindet die Titelzeile, Suche und Filter bleiben */
+  body.gescrollt .tr1{display:none}
+  body.gescrollt .top{padding-top:8px}
+
+  .top{padding:10px 14px 8px}
+  .kk{padding:11px 12px;gap:10px}
+  .kk-n{font-size:20px}
+  .kk-fav{width:42px;height:42px;top:4px;right:4px}
+  .sec{margin:10px 0 7px}
+}
+@media print{
+  .top,.bar,.kk-fav{display:none!important}
+  body{background:#fff}
+  .grid{grid-template-columns:1fr 1fr;gap:6px}
+  .kk{break-inside:avoid;border-color:#ccc}
+  @page{size:A4;margin:12mm}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="topin">
+    <div class="tr1">
+      <div class="tt">Kostenstellen</div>
+      <div class="sync"><span class="sdot" id="sdot"></span><span id="slbl">offline</span></div>
+      <button class="menub" id="menub" onclick="document.body.classList.toggle('admin-offen')"
+              aria-label="Verwaltung">&#8942;</button>
+    </div>
+    <div class="sfeld">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="q" type="search" inputmode="search" autocomplete="off"
+             placeholder="Nummer, Baustelle, Straße, Ort oder Auftraggeber …">
+      <button class="sx" id="qx" onclick="leeren()" aria-label="Suche leeren">&times;</button>
+    </div>
+    <div class="pills" id="pills"></div>
+  </div>
+</div>
+
+<div class="wrap" id="main"></div>
+
+<!-- Detail -->
+<div class="bd" id="bd-det">
+  <div class="md">
+    <div id="dt-inhalt"></div>
+    <div class="kopiert" id="dt-kopiert">Kostenstelle kopiert</div>
+    <div class="ma">
+      <button class="btn g links" id="dt-edit" onclick="bearbeitenAusDetail()">Bearbeiten</button>
+      <button class="btn" onclick="zu('bd-det')">Schließen</button>
+      <button class="btn p" onclick="nummerKopieren()">Nummer kopieren</button>
+    </div>
+  </div>
+</div>
+
+<!-- Anlegen / Ändern -->
+<div class="bd" id="bd-ks">
+  <div class="md">
+    <div class="mdt" id="ks-titel">Kostenstelle anlegen</div>
+    <div class="fr"><label>Kostenstelle *</label>
+      <input class="fi" id="ks-nr" inputmode="numeric" placeholder="z.B. 70658"></div>
+    <div class="fr"><label>Bezeichnung *</label>
+      <input class="fi" id="ks-bez" placeholder="z.B. K 24 Meinkenbracht"></div>
+    <div class="fr"><label>Straße</label>
+      <input class="fi" id="ks-str" placeholder="z.B. Meinkenbrachter Straße (K24)"></div>
+    <div class="fr"><label>Ort</label>
+      <input class="fi" id="ks-ort" placeholder="z.B. 59846 Sundern (DE)"></div>
+    <div class="fr"><label>Auftraggeber</label>
+      <input class="fi" id="ks-ag" placeholder="z.B. Hochsauerlandkreis, 59872 Meschede"></div>
+    <div class="ma">
+      <button class="btn g links" id="ks-del" onclick="ksLoeschen()" style="display:none">Löschen</button>
+      <button class="btn" onclick="zu('bd-ks')">Abbrechen</button>
+      <button class="btn p" onclick="ksSpeichern()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="xl" accept=".xlsx,.xls" style="display:none">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+const STAMM=[
+  {ks:"6005",bez:"Werkstatt",str:"",ort:"00000 Betrieb (DE)",ag:""},
+  {ks:"70000",bez:"Kleinbaustellen Div.",str:"",ort:"00001 Diverse (DE)",ag:""},
+  {ks:"70102",bez:"Umlage allg. Kost. B",str:"",ort:"00001 Diverse (DE)",ag:""},
+  {ks:"70457",bez:"Baugebiet Bainghausen",str:"Klemens-Teipel-Straße",ort:"59846 Sundern-Westenfeld (DE)",ag:"Rudolf Hilgenroth GmbH & Co., 59846 Sundern (Sauerland)"},
+  {ks:"70461",bez:"Erschließung BG Rothländerweg",str:"Rothländerweg",ort:"59846 Sundern (Sauerland) (DE)",ag:""},
+  {ks:"70468",bez:"BG Hudeweg",str:"Hudeweg",ort:"59846 Sundern (DE)",ag:""},
+  {ks:"70517",bez:"L 698 Altena Dahle",str:"Dahler Straße / Altenaer Str.",ort:"58762 Altena (DE)",ag:"Landesbetrieb Straßenbau NRW Regionalniederl. Südw, 58097 Hagen"},
+  {ks:"70523",bez:"MUSO GmbH",str:"Stemeler Straße 99",ort:"59846 Sundern (DE)",ag:""},
+  {ks:"70572",bez:"B 229n OU Balve",str:"Helle",ort:"58802 Balve (DE)",ag:"Landesbetrieb Straßenbau NRW Regionalniederl. Südw, 58097 Hagen"},
+  {ks:"70584",bez:"HB Brandhagen",str:"Ludwigstraße",ort:"59846 Sundern (Sauerland) (DE)",ag:"Stadt Sundern, 59846 Sundern (Sauerland)"},
+  {ks:"70589",bez:"Autohaus Hoffmann",str:"Selschede K6",ort:"59846 Sundern (DE)",ag:"Friedr. Hoffmann GmbH & Co. KG, 59846 Sundern (Sauerland)"},
+  {ks:"70594",bez:"WEPA",str:"Rönkhauser Straße 26",ort:"59757 Arnsberg (DE)",ag:"WEPA Hygieneprodukte GmbH, 59757 Arnsberg"},
+  {ks:"70601",bez:"Bahnhofstraße 2. BA",str:"Bahnhofstraße",ort:"59823 Arnsberg (DE)",ag:"Stadt Arnsberg FD 8.3. Verkehr Straßen-Brückenb, 59823 Arnsberg"},
+  {ks:"70603",bez:"Mobau Schäfer",str:"Hans-Martin-Schleyer-Straße 3",ort:"59846 Sundern (Sauerland) (DE)",ag:""},
+  {ks:"70608",bez:"Röhrsammler",str:"Röhrstraße",ort:"59823 Arnsberg (DE)",ag:"Stadtwerke Arnsberg GmbH, 59823 Arnsberg"},
+  {ks:"70610",bez:"Endausbau Kilianshof",str:"Kilianshof",ort:"59757 Arnsberg (DE)",ag:"Projekta Grundbesitz GmbH, 59755 Arnsberg"},
+  {ks:"70611",bez:"Endausbau Pichmanns",str:"Pichmans Wiese",ort:"59757 Arnsberg (DE)",ag:"Projekta Grundbesitz GmbH, 59755 Arnsberg"},
+  {ks:"70612",bez:"Am Alten Kloster",str:"Am Alten Kloster",ort:"59823 Arnsberg (DE)",ag:"Projekta Grundbesitz GmbH, 59755 Arnsberg"},
+  {ks:"70613",bez:"Kesberg",str:"Kesberg",ort:"58802 Balve (DE)",ag:"Stadtwerke Altena, 58762 Altena"},
+  {ks:"70619",bez:"Gleisanschluss Bestwig",str:"Ruhrstraße 4",ort:"59909 Bestwig (DE)",ag:"Team-Timber Logistik GmbH, 57392 Schmallenberg"},
+  {ks:"70620",bez:"Baubetriebshof Sundern",str:"Ewiger Weg",ort:"59846 Sundern (DE)",ag:"Stadt Sundern, 59846 Sundern (Sauerland)"},
+  {ks:"70621",bez:"Verlegung K29 Calcit",str:"Deinstrop 1",ort:"59757 Arnsberg (DE)",ag:"Calcit Edelsplitt Produktions GmbH & Co. KG, 59757 Arnsberg"},
+  {ks:"70622",bez:"Wildpark Abbruch",str:"Seestraße 26",ort:"59846 Sundern (Sauerland) (DE)",ag:"Santos Bauunternehmen GmbH, 59846 Sundern (Sauerland)"},
+  {ks:"70624",bez:"L 541 Berge-Wenholthausen",str:"L 541 (Königstraße)",ort:"59889 Eslohe (Sauerland) (DE)",ag:"Landesbetrieb Straßenbau NRW Regionalnl Sauerland-Hochstift, 59872 Meschede"},
+  {ks:"70625",bez:"Sanierung Bodenplatte Trilux",str:"Wiebelsheu",ort:"59759 Arnsberg (DE)",ag:"TRILUX GmbH & Co. KG, 59759 Arnsberg"},
+  {ks:"70626",bez:"Am Kampe",str:"Am Kampe",ort:"58802 Balve (DE)",ag:"Stadt Balve FB4-Bau, 58802 Balve"},
+  {ks:"70627",bez:"Triftstraße",str:"Triftweg",ort:"59755 Arnsberg (DE)",ag:""},
+  {ks:"70629",bez:"L 696 Ebbetalstraße",str:"Ebbetalstraße",ort:"58840 Plettenberg (DE)",ag:"Stadt Plettenberg Hoch- und Tiefbauamt, 58840 Plettenberg"},
+  {ks:"70630",bez:"Neubau EFH Kreuzberg",str:"Kreuzberg",ort:"59846 Sundern (DE)",ag:""},
+  {ks:"70631",bez:"Theodor-Hürth-Straße",str:"Theodor-Hürth-Straße",ort:"58706 Menden (Sauerland) (DE)",ag:"Stadt Menden Abt. 64/ Mendener Baubetrieb( MBB) , 58706 Menden (Sauerland)"},
+  {ks:"70632",bez:"Höllinghofen",str:"Höllinghofen",ort:"58708 Menden (Sauerland) (DE)",ag:"Stadtwerke Arnsberg GmbH, 59823 Arnsberg"},
+  {ks:"70633",bez:"Parkplatz Huckenohl",str:"Oesberner Weg",ort:"58706 Menden (Sauerland) (DE)",ag:"Stadt Menden Abt. 64/ Mendener Baubetrieb( MBB) , 58706 Menden (Sauerland)"},
+  {ks:"70635",bez:"Rückertstraße",str:"Rückertstraße",ort:"58675 Hemer (DE)",ag:"Stadt Hemer, 58675 Hemer"},
+  {ks:"70636",bez:"Gut Nierhoff",str:"Wiedhofstraße",ort:"59757 Arnsberg (DE)",ag:""},
+  {ks:"70637",bez:"Neubau Carport",str:"Schubertstraße 29a",ort:"58840 Plettenberg (DE)",ag:""},
+  {ks:"70638",bez:"Zur Hinsel",str:"Zur Hinsel",ort:"58802 Balve (DE)",ag:"Stadt Balve FB4-Bau, 58802 Balve"},
+  {ks:"70639",bez:"Obereimer",str:"Obereimer / Unterm Römberge",ort:"59759 Arnsberg (DE)",ag:""},
+  {ks:"70640",bez:"Asphaltarbeiten Eugen Engert",str:"",ort:"58675 Hemer (DE)",ag:"Eugen Engert GmbH, 32429 Minden"},
+  {ks:"70641",bez:"K 24 Meinkenbracht",str:"Meinkenbrachter Straße (K24)",ort:"59846 Sundern (DE)",ag:"Hochsauerlandkreis, 59872 Meschede"},
+  {ks:"70643",bez:"Erweiterung Getränke Vogt",str:"Specksloh 12",ort:"59757 Arnsberg (DE)",ag:""},
+  {ks:"70644",bez:"Stadion Große Wiese",str:"Am Solepark 5",ort:"59759 Arnsberg (DE)",ag:"Stadtwerke Arnsberg GmbH, 59823 Arnsberg"},
+  {ks:"70645",bez:"L 735 Wennigloh",str:"Im Seufzertal",ort:"59821 Arnsberg (DE)",ag:"Landesbetrieb Straßenbau NRW Regionalnl Sauerland-Hochstift, 59872 Meschede"},
+  {ks:"70646",bez:"Verrohrung Allendorf",str:"Allendorfer Straße 7",ort:"59846 Sundern (Sauerland) (DE)",ag:"Stadt Sundern, 59846 Sundern (Sauerland)"},
+  {ks:"70647",bez:"K 28 Neuenrade Kracht",str:"Zur Kracht",ort:"58809 Neuenrade (DE)",ag:"Märkischer Kreis, 58509 Lüdenscheid"},
+  {ks:"70648",bez:"Wirtschaftswegesanierung Schwartmecke / Leckmart",str:"Schwartmecke / Leckmart",ort:"59889 Eslohe (Sauerland) (DE)",ag:"Gemeinde Eslohe, 59889 Eslohe (Sauerland)"},
+  {ks:"70649",bez:"KA Arnsberg-Neheim",str:"Im Ohl 78",ort:"59757 Arnsberg (DE)",ag:"Ruhrverband Zentralbereich Finanzen - Rechnungsab, 45128 Essen"},
+  {ks:"70650",bez:"Deckenschäden NRW",str:"",ort:"00001 Diverse (DE)",ag:"Landesbetrieb Straßenbau NRW Regionalnl Sauerland-Hochstift, 59872 Meschede"},
+  {ks:"70651",bez:"Greitemann",str:"Seidfelder Straße 32",ort:"59846 Sundern (Sauerland) (DE)",ag:""},
+  {ks:"70652",bez:"B 55 Radweg Stimmstamm",str:"Bundesstraße B 55",ort:"59872 Meschede (DE)",ag:"Landesbetrieb Straßenbau NRW Regionalnl Sauerland-Hochstift, 59872 Meschede"},
+  {ks:"70653",bez:"HEICO Parkplatz",str:"Oesterweg 21",ort:"59469 Ense (DE)",ag:""},
+  {ks:"70654",bez:"K 13 Sieveringen",str:"Sieveringer Kirchweg K13",ort:"59469 Ense (DE)",ag:"Kreis Soest Bau, Kataster und Umwelt , 59494 Soest"},
+  {ks:"70655",bez:"Am Sporgsloh",str:"Am Sporgsloh",ort:"59846 Sundern (Sauerland) (DE)",ag:""},
+  {ks:"70656",bez:"Am Waldbach",str:"Am Waldbach",ort:"59846 Sundern (Sauerland) (DE)",ag:"Hochsauerlandkreis, 59872 Meschede"},
+  {ks:"70657",bez:"Forstbetrieb Meinolf Schröder, Oberflächeninstandsetzung",str:"Bahnhofstraße",ort:"Finnentrop-Rönkhausen",ag:""},
+  {ks:"89500",bez:"Tillmann Wellpappe",str:"",ort:"59846 Sundern (DE)",ag:"Tillmann Wellpappe, 59846 Sundern (Sauerland)"},
+  {ks:"89501",bez:"Tillmann Profile",str:"",ort:"59846 Sundern (Sauerland) (DE)",ag:"Tillmann Profil GmbH, 59846 Sundern (Sauerland)"},
+  {ks:"89502",bez:"Lübke & Vogt",str:"",ort:"59846 Sundern (DE)",ag:"Lübke & Vogt Immobilien + Anlagen GmbH & Co. KG, 59846 Sundern (Sauerland)"},
+  {ks:"89503",bez:"Fischer & Kaufmann",str:"",ort:"57413 Finnentrop (DE)",ag:"Fischer&Kaufmann, 57413 Finnentrop"},
+  {ks:"89504",bez:"R.D.M. Arnsberg GmbH",str:"",ort:"59821 Arnsberg (DE)",ag:"R.D.M. Arnsberg GmbH , 59821 Arnsberg"},
+  {ks:"89505",bez:"Gebr. Prumbaum",str:"",ort:"00001 Diverse (DE)",ag:"Gebr. Prumbaum, 58802 Balve"},
+  {ks:"89506",bez:"Papierwerk Sundern",str:"",ort:"59846 Sundern (DE)",ag:"Papierwerk Sundern GmbH, 59846 Sundern (Sauerland)"},
+  {ks:"89507",bez:"SKS metaplast Scheffer-Klute GmbH",str:"",ort:"59846 Sundern (DE)",ag:"SKS Scheffer Klute GmbH, 59846 Sundern (Sauerland)"},
+  {ks:"89508",bez:"Brumberg Leuchten",str:"",ort:"59846 Sundern (Sauerland) (DE)",ag:""},
+  {ks:"89509",bez:"Schulte Duschkabinen",str:"",ort:"59846 Sundern (DE)",ag:"Schulte Duschkabinenbau GmbH & Co.KG, 59846 Sundern (Sauerland)"},
+  {ks:"89510",bez:"Arnsberger Hoch- und Tiefbau GmbH",str:"",ort:"00001 Diverse (DE)",ag:"Arnsberger Hoch-Tiefbau GmbH, 59821 Arnsberg"},
+  {ks:"89511",bez:"Miederhoff oHG",str:"",ort:"59846 Sundern (Sauerland) (DE)",ag:""},
+  {ks:"89512",bez:"Hepelmann",str:"",ort:"00001 Diverse (DE)",ag:"Josef Hepelmann GmbH & Co. KG Bauunternehmen, 57392 Schmallenberg"},
+  {ks:"89513",bez:"Vorwerk",str:"",ort:"00001 Diverse (DE)",ag:""},
+  {ks:"89514",bez:"Brenscheidt",str:"",ort:"59846 Sundern (Sauerland) (DE)",ag:""},
+  {ks:"89515",bez:"Klute Garten- und Landschaftsbau",str:"",ort:"00001 Diverse (DE)",ag:""},
+  {ks:"89516",bez:"WEPA Hygieneprodukte",str:"",ort:"59757 Arnsberg (DE)",ag:"WEPA Hygieneprodukte GmbH, 59757 Arnsberg"},
+  {ks:"89517",bez:"Stadt Sundern",str:"",ort:"00001 Diverse (DE)",ag:"Stadt Sundern, 59846 Sundern (Sauerland)"},
+  {ks:"89518",bez:"L&R",str:"",ort:"59846 Sundern (Sauerland) (DE)",ag:""},
+  {ks:"89519",bez:"Autohaus Hoffmann",str:"",ort:"59846 Sundern (Sauerland) (DE)",ag:""},
+  {ks:"89520",bez:"Hilgenhaus Grünbau GmbH",str:"",ort:"00001 Diverse (DE)",ag:"Hilgenhaus Grünbau GmbH, 59823 Arnsberg"},
+  {ks:"89521",bez:"Ferdinand Altbrod GmbH & Co. KG",str:"",ort:"00001 Diverse (DE)",ag:"Ferdinand Altbrod GmbH & Co. KG, 59889 Eslohe"},
+  {ks:"90010",bez:"Olpe",str:"",ort:"00001 Diverse (DE)",ag:""},
+  {ks:"90020",bez:"Hellefeld",str:"",ort:"00001 Diverse (DE)",ag:""},
+  {ks:"90032",bez:"Steinbruchverfüllung Berge",str:"",ort:"00001 Diverse (DE)",ag:""},
+  {ks:"90034",bez:"Geländeanfüllung Hellefelder Höhe",str:"",ort:"00001 Diverse (DE)",ag:""},
+  {ks:"90035",bez:"Am Kehling - Bodenverwertung",str:"Am Kehling",ort:"59872 Meschede (DE)",ag:""},
+  {ks:"90036",bez:"Geländeanfüllung Kremer-Schemme",str:"",ort:"59872 Meschede (DE)",ag:""},
+  {ks:"90040",bez:"Diverse Gewährleistungs-/ Reklamationsarbeiten",str:"",ort:"00001 Diverse (DE)",ag:""}
+];
+// ══════════════════════════════════════════════════════════
+//  Datenbank - die Stammdaten oben sind der Grundbestand und
+//  funktionieren auch ohne Verbindung. Änderungen liegen in
+//  Firebase und überschreiben den Grundbestand.
+// ══════════════════════════════════════════════════════════
+let db=null, KR=null;
+try{
+  if(typeof firebase!=='undefined'){
+    if(!firebase.apps.length){
+      firebase.initializeApp({
+        apiKey:"AIzaSyAuU6mF5p5JQ5qvwLVbYUGc1v-HoQ8ZUMw",
+        authDomain:"dispo-hellefeld.firebaseapp.com",
+        databaseURL:"https://dispo-hellefeld-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId:"dispo-hellefeld",
+        storageBucket:"dispo-hellefeld.firebasestorage.app",
+        messagingSenderId:"34994251645",
+        appId:"1:34994251645:web:2f8a076d385bb245354e14"
+      });
+    }
+    db=firebase.database();
+    KR=db.ref('kostenstellen/items');
+  }
+}catch(e){ console.warn('Firebase:', e.message); }
+
+let ausDB=null;          // null = noch nichts geladen
+let suche='', curFilter='alle', ksKey=null, detKs=null;
+let favs=(function(){ try{ return JSON.parse(localStorage.getItem('ks_favs')||'[]'); }catch(e){ return []; } })();
+let letzte=(function(){ try{ return JSON.parse(localStorage.getItem('ks_letzte')||'[]'); }catch(e){ return []; } })();
+
+const ARTEN={
+  bau:    {label:'Baustelle',      farbe:'var(--bau)',     hell:'var(--bau-l)'},
+  kunde:  {label:'Kunde / Regie',  farbe:'var(--kunde)',   hell:'var(--kunde-l)'},
+  depo:   {label:'Boden / Deponie',farbe:'var(--depo)',    hell:'var(--depo-l)'},
+  betrieb:{label:'Betrieb',        farbe:'var(--betrieb)', hell:'var(--betrieb-l)'}
+};
+function artVon(ks){
+  const n=String(ks||'');
+  if(n==='70000'||n==='70102'||n.charAt(0)==='6') return 'betrieb';
+  if(n.indexOf('89')===0) return 'kunde';
+  if(n.indexOf('90')===0) return 'depo';
+  if(n.indexOf('70')===0) return 'bau';
+  return 'betrieb';
+}
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function saeubern(s){
+  return String(s==null?'':s).replace(/_x000D_/g,' ').replace(/[\r\n]+/g,' ')
+         .replace(/\s+/g,' ').trim();
+}
+// Ort "59846 Sundern (Sauerland) (DE)" -> "59846 Sundern (Sauerland)"
+function ortKurz(o){ return String(o||'').replace(/\s*\(DE\)\s*$/,'').trim(); }
+
+// Alle Kostenstellen: Grundbestand, von der Datenbank überlagert
+function alle(){
+  const m={};
+  STAMM.forEach(function(r){ m[r.ks]={ks:r.ks,bez:r.bez,str:r.str,ort:r.ort,ag:r.ag,quelle:'stamm'}; });
+  if(ausDB) Object.keys(ausDB).forEach(function(k){
+    const v=ausDB[k];
+    if(!v||!v.ks) return;
+    if(v.geloescht){ delete m[v.ks]; return; }
+    m[v.ks]={ks:v.ks,bez:v.bez||'',str:v.str||'',ort:v.ort||'',ag:v.ag||'',quelle:'db',key:k};
+  });
+  return Object.values(m).sort(function(a,b){
+    return String(a.ks).localeCompare(String(b.ks),'de',{numeric:true});
+  });
+}
+
+// Suche: Begriffe einzeln, jeder muss irgendwo vorkommen
+function passt(r, begriffe){
+  if(!begriffe.length) return true;
+  const heu=(r.ks+' '+r.bez+' '+r.str+' '+ortKurz(r.ort)+' '+r.ag).toLowerCase();
+  return begriffe.every(function(b){ return heu.indexOf(b)>=0; });
+}
+function gefiltert(){
+  const begriffe=suche.toLowerCase().split(/\s+/).filter(Boolean);
+  return alle().filter(function(r){
+    if(curFilter!=='alle' && artVon(r.ks)!==curFilter) return false;
+    return passt(r, begriffe);
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+//  Anzeige
+// ══════════════════════════════════════════════════════════
+function draw(){
+  zeichnePills();
+  const liste=gefiltert();
+  const m=document.getElementById('main');
+  let h='';
+
+  h+='<div class="bar">'+
+     '<button class="btn p" onclick="ksOeffnen()">+ Kostenstelle</button>'+
+     '<button class="btn" onclick="document.getElementById(\'xl\').value=\'\';document.getElementById(\'xl\').click()">Excel einlesen</button>'+
+     '<button class="btn" onclick="window.print()">Drucken</button>'+
+     '</div>';
+
+  // Favoriten und zuletzt benutzte nur ohne Suche
+  if(!suche){
+    const favR=alle().filter(function(r){ return favs.indexOf(r.ks)>=0; });
+    if(favR.length){
+      h+='<div class="sec">Favoriten <b>'+favR.length+'</b></div><div class="grid">'+
+         favR.map(karte).join('')+'</div>';
+    }
+    const letztR=letzte.map(function(n){ return alle().find(function(r){return r.ks===n;}); })
+                       .filter(function(r){ return r && favs.indexOf(r.ks)<0; });
+    if(letztR.length){
+      h+='<div class="sec" style="margin-top:18px">Zuletzt geöffnet</div><div class="grid">'+
+         letztR.map(karte).join('')+'</div>';
+    }
+    if(favR.length||letztR.length) h+='<div class="sec" style="margin-top:20px">Alle <b>'+liste.length+'</b></div>';
+  } else {
+    h+='<div class="sec">'+liste.length+' Treffer für „'+esc(suche)+'"</div>';
+  }
+
+  if(!liste.length){
+    h+='<div class="leer"><b>Nichts gefunden</b>'+
+       'Suche nach Nummer, Baustelle, Straße, Ort oder Auftraggeber.<br>'+
+       'Mehrere Wörter grenzen weiter ein, z.B. <b style="display:inline">Sundern Kanal</b>.</div>';
+  } else {
+    h+='<div class="grid">'+liste.map(karte).join('')+'</div>';
+  }
+  m.innerHTML=h;
+}
+
+function karte(r){
+  const a=ARTEN[artVon(r.ks)];
+  const fav=favs.indexOf(r.ks)>=0;
+  const zeile2=[r.str, ortKurz(r.ort)].filter(Boolean).join(' · ');
+  return '<div class="kk" data-ks="'+esc(r.ks)+'">'+
+    '<div class="kk-n" style="color:'+a.farbe+'">'+esc(r.ks)+'</div>'+
+    '<div class="kk-b">'+
+      '<div class="kk-t">'+esc(r.bez||'ohne Bezeichnung')+'</div>'+
+      (zeile2?'<div class="kk-s">'+esc(zeile2)+'</div>':'')+
+      (r.ag?'<div class="kk-s">'+esc(r.ag)+'</div>':'')+
+      '<span class="kk-tag" style="background:'+a.hell+';color:'+a.farbe+'">'+a.label+'</span>'+
+    '</div>'+
+    '<button class="kk-fav'+(fav?' on':'')+'" data-fav="'+esc(r.ks)+'" '+
+      'title="'+(fav?'Favorit entfernen':'Als Favorit merken')+'">'+
+      '<svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'+
+    '</button></div>';
+}
+
+function zeichnePills(){
+  const basis=alle();
+  const begriffe=suche.toLowerCase().split(/\s+/).filter(Boolean);
+  const inSuche=basis.filter(function(r){ return passt(r,begriffe); });
+  const def=[['alle','Alle']].concat(Object.keys(ARTEN).map(function(k){ return [k,ARTEN[k].label]; }));
+  document.getElementById('pills').innerHTML=def.map(function(d){
+    const n=d[0]==='alle'?inSuche.length:inSuche.filter(function(r){return artVon(r.ks)===d[0];}).length;
+    return '<button class="pill'+(curFilter===d[0]?' on':'')+'" data-filter="'+d[0]+'">'+
+           d[1]+' <span>'+n+'</span></button>';
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+//  Detail
+// ══════════════════════════════════════════════════════════
+function detOeffnen(ks){
+  const r=alle().find(function(x){return x.ks===ks;});
+  if(!r) return;
+  detKs=r;
+  const a=ARTEN[artVon(r.ks)];
+  let h='<div class="dt-n">'+esc(r.ks)+'</div>'+
+    '<div class="dt-t">'+esc(r.bez||'ohne Bezeichnung')+'</div>'+
+    '<span class="kk-tag" style="background:'+a.hell+';color:'+a.farbe+'">'+a.label+'</span>'+
+    '<div style="margin-top:14px">';
+  if(r.str) h+=zeile('Straße', r.str);
+  if(r.ort) h+=zeile('Ort', ortKurz(r.ort));
+  if(r.ag)  h+=zeile('Auftraggeber', r.ag);
+  h+='</div>';
+  const adr=[r.str, ortKurz(r.ort)].filter(Boolean).join(', ');
+  if(adr && ortKurz(r.ort).indexOf('Diverse')<0 && ortKurz(r.ort).indexOf('Betrieb')<0){
+    h+='<div style="margin-top:12px"><a class="btn" style="display:inline-flex;align-items:center;text-decoration:none" '+
+       'href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(adr)+'" '+
+       'target="_blank" rel="noopener">In Karte öffnen</a></div>';
+  }
+  document.getElementById('dt-inhalt').innerHTML=h;
+  document.getElementById('dt-kopiert').classList.remove('on');
+  auf('bd-det');
+  merken(r.ks);
+}
+function zeile(l,w){
+  return '<div class="dt-z"><span class="dt-l">'+l+'</span><span class="dt-w">'+esc(w)+'</span></div>';
+}
+function merken(ks){
+  letzte=[ks].concat(letzte.filter(function(x){return x!==ks;})).slice(0,6);
+  try{ localStorage.setItem('ks_letzte', JSON.stringify(letzte)); }catch(e){}
+}
+function nummerKopieren(){
+  if(!detKs) return;
+  const t=detKs.ks;
+  const fertig=function(){
+    const el=document.getElementById('dt-kopiert');
+    el.classList.add('on');
+    setTimeout(function(){ el.classList.remove('on'); },2200);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(fertig).catch(function(){ ersatzKopie(t,fertig); });
+  } else ersatzKopie(t,fertig);
+}
+function ersatzKopie(t,fertig){
+  const ta=document.createElement('textarea');
+  ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); fertig(); }catch(e){ alert('Kostenstelle: '+t); }
+  document.body.removeChild(ta);
+}
+function bearbeitenAusDetail(){
+  if(!detKs) return;
+  zu('bd-det');
+  setTimeout(function(){ ksOeffnen(detKs.ks); },120);
+}
+
+// ══════════════════════════════════════════════════════════
+//  Anlegen / Ändern / Löschen
+// ══════════════════════════════════════════════════════════
+function auf(id){ document.getElementById(id).classList.add('on'); }
+function zu(id){ document.getElementById(id).classList.remove('on'); }
+
+function ksOeffnen(ks){
+  const r=ks?alle().find(function(x){return x.ks===ks;}):null;
+  ksKey=r?r.ks:null;
+  document.getElementById('ks-titel').textContent=r?'Kostenstelle ändern':'Kostenstelle anlegen';
+  document.getElementById('ks-nr').value=r?r.ks:'';
+  document.getElementById('ks-bez').value=r?r.bez:'';
+  document.getElementById('ks-str').value=r?r.str:'';
+  document.getElementById('ks-ort').value=r?r.ort:'';
+  document.getElementById('ks-ag').value=r?r.ag:'';
+  document.getElementById('ks-del').style.display=r?'':'none';
+  auf('bd-ks');
+}
+
+function ksSpeichern(){
+  const nr=document.getElementById('ks-nr').value.trim();
+  const bez=document.getElementById('ks-bez').value.trim();
+  if(!nr){ alert('Bitte eine Kostenstelle eingeben.'); return; }
+  if(!bez){ alert('Bitte eine Bezeichnung eingeben.'); return; }
+  if(!ksKey && alle().some(function(x){return x.ks===nr;})){
+    alert('Die Kostenstelle '+nr+' gibt es schon.'); return;
+  }
+  const e={ ks:nr, bez:bez,
+    str:document.getElementById('ks-str').value.trim(),
+    ort:document.getElementById('ks-ort').value.trim(),
+    ag:document.getElementById('ks-ag').value.trim(),
+    ts:Date.now() };
+  schreiben(ksKey&&ksKey!==nr?ksKey:nr, e, ksKey&&ksKey!==nr?nr:null);
+  zu('bd-ks'); draw();
+}
+
+// Schreibt einen Eintrag. Bei geänderter Nummer wird die alte als gelöscht
+// markiert, damit sie nicht aus dem Grundbestand wieder auftaucht.
+function schreiben(alteNr, e, neueNr){
+  ausDB=ausDB||{};
+  const schl=function(n){ return 'ks'+String(n).replace(/[.#$\[\]\/]/g,'_'); };
+  if(neueNr){
+    const ak=schl(alteNr);
+    const tot={ks:alteNr, geloescht:true, ts:Date.now()};
+    if(KR) KR.child(ak).set(tot).catch(function(){});
+    ausDB[ak]=tot;
+  }
+  const k=schl(e.ks);
+  if(KR) KR.child(k).set(e).catch(function(err){ alert('Nicht gespeichert: '+err.message); });
+  ausDB[k]=e;
+}
+
+function ksLoeschen(){
+  if(!ksKey) return;
+  if(!confirm('Kostenstelle '+ksKey+' aus der Übersicht entfernen?')) return;
+  ausDB=ausDB||{};
+  const k='ks'+String(ksKey).replace(/[.#$\[\]\/]/g,'_');
+  const tot={ks:ksKey, geloescht:true, ts:Date.now()};
+  if(KR) KR.child(k).set(tot).catch(function(){});
+  ausDB[k]=tot;
+  favs=favs.filter(function(x){return x!==ksKey;});
+  try{ localStorage.setItem('ks_favs', JSON.stringify(favs)); }catch(e){}
+  zu('bd-ks'); draw();
+}
+
+// ══════════════════════════════════════════════════════════
+//  Excel einlesen (neuer Export der Bauvorhabenstammdaten)
+// ══════════════════════════════════════════════════════════
+document.getElementById('xl').addEventListener('change', function(ev){
+  const f=ev.target.files&&ev.target.files[0];
+  if(!f) return;
+  if(typeof XLSX==='undefined'){ alert('Der Excel-Baustein konnte nicht geladen werden. Besteht eine Internetverbindung?'); return; }
+  const leser=new FileReader();
+  leser.onload=function(e){
+    let neu=0, geaendert=0;
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const zeilen=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      const vorher={}; alle().forEach(function(r){ vorher[r.ks]=r; });
+      zeilen.forEach(function(z){
+        const nr=saeubern(z[0]);
+        if(!nr||!/^\d{3,}$/.test(nr)) return;         // Kopfzeile und Leeres überspringen
+        let ag=saeubern(z[4]);
+        if(ag.toLowerCase().indexOf('keine zuordnung')===0) ag='';
+        const e2={ks:nr, bez:saeubern(z[1]), str:saeubern(z[2]), ort:saeubern(z[3]), ag:ag, ts:Date.now()};
+        const alt=vorher[nr];
+        if(!alt){ neu++; }
+        else if(alt.bez!==e2.bez||alt.str!==e2.str||alt.ort!==e2.ort||alt.ag!==e2.ag){ geaendert++; }
+        else return;                                   // unverändert, nichts schreiben
+        schreiben(nr, e2, null);
+      });
+    }catch(err){ alert('Die Datei konnte nicht gelesen werden: '+err.message); return; }
+    draw();
+    alert(neu+' neue und '+geaendert+' geänderte Kostenstellen übernommen.'+
+          (neu+geaendert===0?'\n\nAlles war schon auf dem neuesten Stand.':''));
+  };
+  leser.readAsArrayBuffer(f);
+});
+
+// ══════════════════════════════════════════════════════════
+//  Ereignisse
+// ══════════════════════════════════════════════════════════
+const qf=document.getElementById('q');
+qf.addEventListener('input', function(){
+  suche=qf.value.trim();
+  document.getElementById('qx').classList.toggle('on', !!suche);
+  draw();
+});
+function leeren(){ qf.value=''; suche=''; document.getElementById('qx').classList.remove('on'); draw(); qf.focus(); }
+
+document.addEventListener('click', function(ev){
+  const p=ev.target.closest?ev.target.closest('[data-filter]'):null;
+  if(p){ curFilter=p.dataset.filter; draw(); return; }
+  const f=ev.target.closest?ev.target.closest('[data-fav]'):null;
+  if(f){
+    ev.stopPropagation();
+    const n=f.dataset.fav;
+    favs = favs.indexOf(n)>=0 ? favs.filter(function(x){return x!==n;}) : favs.concat([n]);
+    try{ localStorage.setItem('ks_favs', JSON.stringify(favs)); }catch(e){}
+    draw(); return;
+  }
+  const k=ev.target.closest?ev.target.closest('[data-ks]'):null;
+  if(k){ detOeffnen(k.dataset.ks); }
+});
+document.querySelectorAll('.bd').forEach(function(b){
+  b.addEventListener('click', function(ev){ if(ev.target===b) b.classList.remove('on'); });
+});
+document.addEventListener('keydown', function(ev){
+  if(ev.key==='Escape'){
+    const offen=document.querySelectorAll('.bd.on');
+    if(offen.length){ offen.forEach(function(b){b.classList.remove('on');}); }
+    else if(suche) leeren();
+  }
+});
+
+// Kopf schrumpft beim Scrollen - am Handy zählt jede Zeile.
+let letzterStand=0;
+window.addEventListener('scroll', function(){
+  const y=window.scrollY||document.documentElement.scrollTop;
+  if(Math.abs(y-letzterStand)<8) return;
+  letzterStand=y;
+  document.body.classList.toggle('gescrollt', y>70);
+}, {passive:true});
+
+function sync(on){
+  document.getElementById('sdot').className='sdot'+(on?' on':'');
+  document.getElementById('slbl').textContent=on?'synchronisiert':'offline · Grundbestand';
+}
+if(db){
+  try{
+    db.ref('.info/connected').on('value', function(s){ sync(!!s.val()); });
+    KR.on('value', function(s){ ausDB=s.val()||{}; draw(); },
+          function(e){ console.warn('Kostenstellen:', e.message); });
+  }catch(e){ console.warn(e); }
+}
+draw();
+</script>
+</body>
+</html>
