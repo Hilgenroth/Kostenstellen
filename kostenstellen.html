@@ -215,7 +215,8 @@ body.admin-offen .menub{background:var(--red);border-color:var(--red);color:#fff
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script type="text/hg-app" id="hg-app">
 const STAMM=[
   {ks:"6005",bez:"Werkstatt",str:"",ort:"00000 Betrieb (DE)",ag:""},
   {ks:"70000",bez:"Kleinbaustellen Div.",str:"",ort:"00001 Diverse (DE)",ag:""},
@@ -673,5 +674,75 @@ if(db){
 }
 draw();
 </script>
+<script>
+/* ── Anonyme Anmeldung ──────────────────────────────────────────
+   Die Datenbankregeln verlangen "auth != null". Der eigentliche
+   Seitencode läuft deshalb erst, wenn die Anmeldung steht - sonst
+   würden die Abos beim ersten Aufruf abgewiesen.                */
+(function(){
+  var CFG = {
+        apiKey:"AIzaSyAuU6mF5p5JQ5qvwLVbYUGc1v-HoQ8ZUMw",
+        authDomain:"dispo-hellefeld.firebaseapp.com",
+        databaseURL:"https://dispo-hellefeld-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId:"dispo-hellefeld",
+        storageBucket:"dispo-hellefeld.firebasestorage.app",
+        messagingSenderId:"34994251645",
+        appId:"1:34994251645:web:2f8a076d385bb245354e14"
+      };
+  var block = document.getElementById('hg-app');
+  var gestartet = false;
+
+  function starten(){
+    if(gestartet) return; gestartet = true;
+    // Handler, die auf das Laden der Seite warten, würden jetzt nie
+    // mehr auslösen - deshalb werden sie direkt ausgeführt.
+    var addD = document.addEventListener, addW = window.addEventListener;
+    document.addEventListener = function(t,h,o){
+      if(t === 'DOMContentLoaded'){ try{ h(); }catch(e){ console.error(e); } return; }
+      return addD.call(document,t,h,o);
+    };
+    window.addEventListener = function(t,h,o){
+      if(t === 'load' || t === 'DOMContentLoaded'){ try{ h(); }catch(e){ console.error(e); } return; }
+      return addW.call(window,t,h,o);
+    };
+    var s = document.createElement('script');
+    s.text = block.textContent;          // läuft global, inline-onclick bleibt heil
+    document.body.appendChild(s);
+    document.addEventListener = addD;
+    window.addEventListener = addW;
+  }
+
+  function hinweis(txt){
+    var d = document.createElement('div');
+    d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:9999;background:#fee2e2;'+
+      'color:#b91c1c;font:600 13px -apple-system,Segoe UI,Roboto,Arial;padding:10px 14px;'+
+      'text-align:center;line-height:1.45';
+    d.textContent = txt;
+    (document.body || document.documentElement).appendChild(d);
+  }
+
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(CFG);
+    firebase.auth().signInAnonymously()
+      .then(starten)
+      .catch(function(e){
+        console.error('[Auth]', e);
+        if(e && e.code === 'auth/operation-not-allowed'){
+          hinweis('Anonyme Anmeldung ist in Firebase noch nicht freigeschaltet - '+
+                  'Daten können nicht geladen werden.');
+        } else if(e && e.code === 'auth/network-request-failed'){
+          hinweis('Keine Verbindung zur Anmeldung - es werden keine aktuellen Daten geladen.');
+        } else {
+          hinweis('Anmeldung fehlgeschlagen: ' + ((e && e.message) || e));
+        }
+        starten();                        // Seite trotzdem anzeigen
+      });
+  }catch(e){
+    console.error('[Auth]', e);
+    starten();
+  }
+})();
+</script>
+
 </body>
 </html>
